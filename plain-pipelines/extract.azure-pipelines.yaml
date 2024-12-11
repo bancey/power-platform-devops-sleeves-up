@@ -28,3 +28,10 @@ stages:
             inputs:
               authenticationType: PowerPlatformSPN
               PowerPlatformSPN: 'dev'
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformExportSolution@2
+            displayName: 'Power Platform Export Solution - ${{ parameters.dev_solution_name }}'
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: 'dev'
+              SolutionName: ${{ parameters.dev_solution_name}}
+              SolutionOutputFile: '$(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip'
