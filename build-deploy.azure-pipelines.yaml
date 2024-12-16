@@ -75,7 +75,7 @@ stages:
                         ConvertToManaged: true
                         HoldingSolution: ${{ env.useHoldingSolution }}
                     - ${{ if env.useHoldingSolution }}:
-                        - task: PowerPlatformApplySolutionUpgrade@0
+                        - task: PowerPlatformApplySolutionUpgrade@2
                           displayName: "Power Platform Apply Solution Upgrade"
                           inputs:
                             authenticationType: PowerPlatformSPN
