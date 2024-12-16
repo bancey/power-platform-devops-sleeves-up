@@ -13,5 +13,4 @@ Content presented during the sleeves up session can be found in this repo.
 - An Azure DevOps organisation (free for up to 5 users)
   - Install the Power Platform build tools extension
   - Setup a service connection to your Power Platform environments
-- A GitHub Account (although if you're looking at this you likely already have one).
-
+- A Git Repository, I'll be using both Azure DevOps and GitHub. (although if you're looking at this you likely already have one).

@@ -17,10 +17,6 @@ stages:
         displayName: Extract and Unpack
         steps:
           - checkout: self
-          - task: ExtractFiles@1
-            inputs:
-              archiveFilePatterns: '**/$(parameters.dev_solution_name).zip'
-              destinationFolder: '$(Build.SourcesDirectory)/$(parameters.target_solution_name)'
           - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
             displayName: 'Power Platform Tool Installer'
           - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.whoami.PowerPlatformWhoAmi@2

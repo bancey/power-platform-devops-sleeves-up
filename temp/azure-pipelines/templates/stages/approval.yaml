@@ -1,0 +1,25 @@
+---
+parameters:
+  - name: environmentName
+    default: ''
+
+stages:
+  - stage: Approval_${{ parameters.environmentName }}
+    jobs:
+      - deployment: Approval_${{ parameters.environmentName }}
+        displayName: "Approval ${{ parameters.environmentName }}"
+        environment: '${{ parameters.environmentName }}'
+        pool: server
+        timeoutInMinutes: 4320              # job times out in 3 days
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: ManualValidation@0
+                  timeoutInMinutes: 1440    # task times out in 1 day
+                  inputs:
+                    notifyUsers: |
+                      mikolaj.miotk@royallondon.com
+                      szymon.palusewski@royallondon.com
+                    instructions: 'Manual approval before promoting to ${{ parameters.environmentName }}'
+                    onTimeout: 'resume'

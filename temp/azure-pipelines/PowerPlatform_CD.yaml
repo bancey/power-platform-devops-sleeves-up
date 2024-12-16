@@ -1,0 +1,24 @@
+---
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+# https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/manual-intervention-v8?view=azure-pipelines
+
+stages:
+  - template: templates/stages/approval.yaml
+    parameters:
+      environmentName: PowerPlatform_CICD_Test
+  - template: templates/stages/deploy.yaml
+    parameters:
+      environmentName: PowerPlatform_CICD_Test
+      serviceConnectionName: 'Power_Platform_Env_Test'
+  - template: templates/stages/approval.yaml
+    parameters:
+      environmentName: PowerPlatform_CICD_Prod
+  - template: templates/stages/deploy.yaml
+    parameters:
+      environmentName: PowerPlatform_CICD_Prod
+      serviceConnectionName: 'Power_Platform_Env_Prod'

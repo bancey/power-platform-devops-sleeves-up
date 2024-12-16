@@ -1,0 +1,146 @@
+---
+trigger: none
+# TODO: Add a trigger to automatically run pipeline after saving solution in Power Apps WebUI (via API/Webhook/pipeline in a schedule checking API?)
+
+# pool:
+#   vmImage: 'windows-latest'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: PowerPlatform-SP
+  - name: serviceConnectionName
+    value: Power_Platform_Env_DEV
+
+stages:
+  - stage: build_power_platform
+    displayName: Build Power Platform solution
+    jobs:
+      - job: build_power_platform
+        displayName: Build, Validate and publish as artifact
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            fetchTags: true
+            persistCredentials: false
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+            displayName: 'Power Platform Tool Installer'
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.whoami.PowerPlatformWhoAmi@2
+            displayName: 'Power Platform WhoAmI'
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: '$(serviceConnectionName)'
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformExportSolution@2
+            displayName: 'Power Platform Export Solution'
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: '$(serviceConnectionName)'
+              SolutionName: DemoSolution
+              SolutionOutputFile: '$(Build.StagingDirectory)/DemoSolution_unmanaged.zip'
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.unpack-solution.PowerPlatformUnpackSolution@2
+            displayName: 'Power Platform Unpack Solution'
+            inputs:
+              SolutionInputFile: '$(Build.StagingDirectory)/DemoSolution_unmanaged.zip'
+              SolutionTargetFolder: '$(Build.SourcesDirectory)/DemoSolution'
+          - task: PowerPlatformChecker@2
+            displayName: Solution Checker
+            inputs:
+              authenticationType: 'PowerPlatformSPN'
+              PowerPlatformSPN: '$(serviceConnectionName)'
+              RuleSet: '0ad12346-e108-40b8-a956-9a8f95ea18c9'
+              SaveResults: true
+              FilesToAnalyze: '$(Build.StagingDirectory)/DemoSolution_unmanaged.zip'
+          - task: PowerPlatformChecker@2
+            displayName: AppSource Certification
+            inputs:
+              authenticationType: 'PowerPlatformSPN'
+              PowerPlatformSPN: '$(serviceConnectionName)'
+              RuleSet: '083a2ef5-7e0e-4754-9d88-9455142dc08b'
+              SaveResults: true
+              FilesToAnalyze: '$(Build.StagingDirectory)/DemoSolution_unmanaged.zip'
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Artifact: drop'
+            inputs:
+              PathtoPublish: '$(Build.SourcesDirectory)/DemoSolution'
+              ArtifactName: 'drop'
+              publishLocation: 'Container'
+
+  - stage: Build_Tools
+    displayName: Validate pipelines and files
+    jobs:
+      - job: Build_Pipelines_Linux
+        displayName: Validation tools Linux
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            fetchTags: true
+            persistCredentials: false
+          - download: current
+            artifact: drop
+          - bash: |
+              rm -rf DemoSolution
+              mv ../drop ./DemoSolution
+            displayName: Replace solution from artifact to git
+          - bash: |
+              sudo pip3 install yamllint
+            displayName: Install yamllint
+          - bash: |
+              yamllint .
+            displayName: Validate YAML files
+            continueOnError: true
+          - bash: |
+              sudo apt-get install -y jq
+            displayName: Install jq
+          - bash: |
+              OIFS="$IFS" IFS=$'\n'; for i in $(find . -type f -name '*.json'); do echo "Testing $i" && jq . "$i" 1>/dev/null && echo -e "\n"; done; IFS="$OIFS"
+            displayName: Validate all JSON files
+          - bash: |
+              sudo apt-get install -y xmlstarlet
+            displayName: Install xmlstarlet
+          - bash: |
+              OIFS="$IFS" IFS=$'\n'; for i in $(find . -type f -name '*.xml'); do echo "Testing $i" && xmlstarlet val "$i" 1>/dev/null && echo -e "\n"; done; IFS="$OIFS"
+            displayName: Validate all XML files
+          - bash: |
+              docker run -w /repo -v $PWD:/repo zricethezav/gitleaks:latest detect --config=.gitleaks.toml --verbose --redact
+            displayName: Secrets scan - gitleaks
+          - bash: |
+              docker run -v $PWD:/scandir ghcr.io/djdefi/gitavscan
+            displayName: AV scan - gitavscan
+
+
+  - template: templates/stages/approval.yaml
+    parameters:
+      environmentName: PowerPlatform_CICD_Dev
+
+  - stage: Publish_Git
+    displayName: Publish solution to git
+    jobs:
+      - job: Publish_Git
+        displayName: Publish solution to git
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            fetchTags: true
+            persistCredentials: false
+          - download: current
+            artifact: drop
+          - bash: |
+              rm -rf DemoSolution
+              mv ../drop ./DemoSolution
+            displayName: Replace solution from artifact to git
+          - bash: |
+              echo "$(Build.SourceBranchName)"
+              # Using PAT, because System.AccessToken doesn't have permissions to push to git repo
+              B64_PAT=$(printf ":$pattoken" | base64)
+
+              git config --global user.email "ado@royallondon.com"
+              git config --global user.name "ado"
+              git checkout $(Build.SourceBranchName)
+
+              git add .
+              git commit -m "Updated the solution"
+              git -c http.extraHeader="Authorization: Basic ${B64_PAT}" push origin $(Build.SourceBranchName)
+            displayName: Push solution to git repo
+            env:
+              pattoken: $(pat-pipelines)

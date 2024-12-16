@@ -1,0 +1,63 @@
+---
+parameters:
+  - name: environmentName
+    default: ''
+  - name: serviceConnectionName
+    default: ''
+  - name: useHoldingSolution
+    default: false
+
+# variables:
+#   - name: 'serviceConnectionName'
+#     value: '${{ parameters.serviceConnectionName }}'
+
+stages:
+  - stage: Deploy_${{ parameters.environmentName }}
+    jobs:
+      - deployment: Deploy_${{ parameters.environmentName }}
+        displayName: "Deploy ${{ parameters.environmentName }}"
+        environment: '${{ parameters.environmentName }}'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  fetchDepth: 0
+                  fetchTags: true
+                  persistCredentials: false
+                - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+                  displayName: 'Power Platform Tool Installer'
+                - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.whoami.PowerPlatformWhoAmi@2
+                  displayName: 'Power Platform WhoAmI'
+                  inputs:
+                    authenticationType: PowerPlatformSPN
+                    PowerPlatformSPN: "${{ parameters.serviceConnectionName }}"
+
+                - task: PowerPlatformPackSolution@2
+                  inputs:
+                    SolutionSourceFolder: '$(Build.SourcesDirectory)/DemoSolution'
+                    SolutionOutputFile: '$(Build.SourcesDirectory)/DemoSolution_managed.zip'
+                    SolutionType: Managed
+                - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.backup-environment.PowerPlatformBackupEnvironment@0
+                  displayName: 'Power Platform Backup Environment - Pre-Import'
+                  inputs:
+                    authenticationType: 'PowerPlatformSPN'
+                    PowerPlatformSPN: "${{ parameters.serviceConnectionName }}"
+                    BackupLabel: 'Full backup - $(Build.BuildNumber)'
+                - task: PowerPlatformImportSolution@2
+                  inputs:
+                    authenticationType: 'PowerPlatformSPN'
+                    PowerPlatformSPN: "${{ parameters.serviceConnectionName }}"
+                    SolutionInputFile: '$(Build.SourcesDirectory)/DemoSolution_managed.zip'
+                    AsyncOperation: true
+                    MaxAsyncWaitTime: '60'
+                    ConvertToManaged: true
+                    HoldingSolution: ${{ parameters.useHoldingSolution }}
+                - ${{ if parameters.useHoldingSolution }}:
+                  - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.apply-solution-upgrade.PowerPlatformApplySolutionUpgrade@0
+                    displayName: 'Power Platform Apply Solution Upgrade'
+                    inputs:
+                      authenticationType: PowerPlatformSPN
+                      PowerPlatformSPN: "${{ parameters.serviceConnectionName }}"
+                      SolutionName: 'DemoSolution'
+                      MaxAsyncWaitTime: 45

@@ -1,0 +1,8 @@
+# https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-overview#considerations-and-limitations
+# Power BI Desktop uses CRLF as end-of-line. To avoid problems in your diffs, configure Git to handle line endings by enabling autocrlf.
+* text=auto eol=crlf
+
+# Force the following filetypes to have unix eols, so Windows does not break them
+.* text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
