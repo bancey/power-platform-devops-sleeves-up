@@ -43,7 +43,7 @@ stages:
                   SolutionOutputFile: "$(Build.StagingDirectory)/solutions/${{ solution }}.zip"
                   SolutionType: Both
           - publish: $(Build.StagingDirectory)/solutions
-            displayNmae: "Publish Solutions"
+            displayName: "Publish Solutions"
             artifact: solutions
   - ${{ each env in parameters.environments }}:
       - stage: Deploy_${{ replace(env.environmentName, ' ', '_') }}
