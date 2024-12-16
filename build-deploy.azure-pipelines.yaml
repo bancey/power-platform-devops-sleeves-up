@@ -40,9 +40,10 @@ stages:
                 displayName: "Pack Solution - ${{ solution }}"
                 inputs:
                   SolutionSourceFolder: "$(Build.SourcesDirectory)/src/${{ solution }}/src"
-                  SolutionOutputFile: "$(Build.StagingDirectory)/${{ solution }}.zip"
+                  SolutionOutputFile: "$(Build.StagingDirectory)/solutions/${{ solution }}.zip"
                   SolutionType: Both
-          - publish: $(Build.StagingDirectory)/*.zip
+          - publish: $(Build.StagingDirectory)/solutions
+            displayNmae: "Publish Solutions"
             artifact: solutions
   - ${{ each env in parameters.environments }}:
       - stage: Deploy_${{ replace(env.environmentName, ' ', '_') }}
