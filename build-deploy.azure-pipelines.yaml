@@ -33,15 +33,16 @@ stages:
             displayName: "Power Platform Tool Installer"
           - ${{ each solution in parameters.solutions }}:
               - task: PowerPlatformPackSolution@2
-                displayName: "Pack Solution - ${{ solution }} - Managed"
+                displayName: "Pack Solution - ${{ solution }}"
                 inputs:
                   SolutionSourceFolder: "$(Build.SourcesDirectory)/${{ solution }}"
-                  SolutionOutputFile: "$(Build.StagingDirectory)/${{ solution }}_managed.zip"
+                  SolutionOutputFile: "$(Build.StagingDirectory)/${{ solution }}.zip"
                   SolutionType: Both
           - publish: $(Build.StagingDirectory)/*.zip
             artifact: solutions
   - ${{ each env in parameters.environments }}:
       - stage: Deploy_${{ replace(env.environmentName, ' ', '_') }}
+        displayName: "Deploy ${{ env.environmentName }}"
         jobs:
           - deployment: Deploy_${{ replace(env.environmentName, ' ', '_') }}
             displayName: "Deploy ${{ env.environmentName }}"
