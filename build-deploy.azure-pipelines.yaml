@@ -59,7 +59,7 @@ stages:
                       inputs:
                         authenticationType: PowerPlatformSPN
                         PowerPlatformSPN: "${{ env.serviceConnectionName }}"
-                    - task: PowerPlatformBackupEnvironment@0
+                    - task: PowerPlatformBackupEnvironment@2
                       displayName: "Power Platform Backup Environment - Pre-Import"
                       inputs:
                         authenticationType: "PowerPlatformSPN"
