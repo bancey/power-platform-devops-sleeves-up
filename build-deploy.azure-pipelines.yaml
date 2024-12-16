@@ -39,7 +39,7 @@ stages:
               - task: PowerPlatformPackSolution@2
                 displayName: "Pack Solution - ${{ solution }}"
                 inputs:
-                  SolutionSourceFolder: "$(Build.SourcesDirectory)/${{ solution }}/src"
+                  SolutionSourceFolder: "$(Build.SourcesDirectory)/src/${{ solution }}"
                   SolutionOutputFile: "$(Build.StagingDirectory)/${{ solution }}.zip"
                   SolutionType: Both
           - publish: $(Build.StagingDirectory)/*.zip
