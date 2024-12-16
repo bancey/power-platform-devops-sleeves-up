@@ -76,7 +76,7 @@ stages:
                             MaxAsyncWaitTime: "60"
                             ConvertToManaged: true
                             HoldingSolution: ${{ env.useHoldingSolution }}
-                        - ${{ if env.useHoldingSolution }}:
+                        - ${{ if eq(env.useHoldingSolution, true) }}:
                             - task: PowerPlatformApplySolutionUpgrade@2
                               displayName: "Power Platform Apply Solution Upgrade"
                               inputs:
