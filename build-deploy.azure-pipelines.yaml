@@ -40,7 +40,7 @@ stages:
                   SolutionType: Both
           - publish: $(Build.StagingDirectory)/*.zip
             artifact: solutions
-  - ${{ for env in parameters.environments }}:
+  - ${{ each env in parameters.environments }}:
       - stage: Deploy_${{ replace(env.environmentName, ' ', '_') }}
         jobs:
           - deployment: Deploy_${{ replace(env.environmentName, ' ', '_') }}
