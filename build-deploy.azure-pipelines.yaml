@@ -29,10 +29,10 @@ stages:
         displayName: Pack Solutions
         steps:
           - checkout: self
-          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+          - task: PowerPlatformToolInstaller@2
             displayName: "Power Platform Tool Installer"
           - ${{ each solution in parameters.solutions }}:
-              - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformPackSolution@2
+              - task: PowerPlatformPackSolution@2
                 displayName: "Pack Solution - ${{ solution }} - Managed"
                 inputs:
                   SolutionSourceFolder: "$(Build.SourcesDirectory)/${{ solution }}"
@@ -52,14 +52,14 @@ stages:
                   steps:
                     - checkout: self
                       fetchDepth: 0
-                    - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+                    - task: PowerPlatformToolInstaller@2
                       displayName: "Power Platform Tool Installer"
-                    - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.whoami.PowerPlatformWhoAmi@2
+                    - task: PowerPlatformWhoAmi@2
                       displayName: "Power Platform WhoAmI"
                       inputs:
                         authenticationType: PowerPlatformSPN
                         PowerPlatformSPN: "${{ env.serviceConnectionName }}"
-                    - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.backup-environment.PowerPlatformBackupEnvironment@0
+                    - task: PowerPlatformBackupEnvironment@0
                       displayName: "Power Platform Backup Environment - Pre-Import"
                       inputs:
                         authenticationType: "PowerPlatformSPN"
@@ -75,7 +75,7 @@ stages:
                         ConvertToManaged: true
                         HoldingSolution: ${{ env.useHoldingSolution }}
                     - ${{ if env.useHoldingSolution }}:
-                        - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.apply-solution-upgrade.PowerPlatformApplySolutionUpgrade@0
+                        - task: PowerPlatformApplySolutionUpgrade@0
                           displayName: "Power Platform Apply Solution Upgrade"
                           inputs:
                             authenticationType: PowerPlatformSPN

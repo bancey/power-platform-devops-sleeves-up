@@ -17,14 +17,14 @@ stages:
         displayName: Export Dev Solutions
         steps:
           - checkout: self
-          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+          - task: PowerPlatformToolInstaller@2
             displayName: "Power Platform Tool Installer"
-          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.whoami.PowerPlatformWhoAmi@2
+          - task: PowerPlatformWhoAmi@2
             displayName: "Power Platform WhoAmI"
             inputs:
               authenticationType: PowerPlatformSPN
               PowerPlatformSPN: "dev"
-          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformExportSolution@2
+          - task: PowerPlatformExportSolution@2
             displayName: "Power Platform Export Solution - ${{ parameters.dev_solution_name }}"
             inputs:
               authenticationType: PowerPlatformSPN
@@ -39,7 +39,7 @@ stages:
       - job: deploy_to_extract
         displayName: Extract Solutions and Unpack
         steps:
-          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformResetEnvironment@2
+          - task: PowerPlatformResetEnvironment@2
             displayName: "Reset Extract Environment"
             inputs:
               authenticationType: PowerPlatformSPN
