@@ -1,0 +1,81 @@
+trigger: none
+
+pool:
+  vmImage: "ubuntu-latest"
+
+parameters:
+  - name: environments
+    type: object
+    default:
+      - environmentName: Power Platform Extract
+        serviceConnectionName: extract
+        useHoldingSolution: false
+      #- environmentName: Power Platform CI
+      #  serviceConnectionName: ci
+      #  useHoldingSolution: false
+      #- environmentName: Power Platform Test
+      #  serviceConnectionName: test
+      #  useHoldingSolution: false
+  - name: solutions
+    type: list
+    default:
+      - example_core
+
+stages:
+  - stage: Pack_Solutions
+    displayName: Pack Solutions
+    jobs:
+      - job: Pack_Solutions
+        displayName: Pack Solutions
+        steps:
+          - checkout: self
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+            displayName: "Power Platform Tool Installer"
+          - ${{ each solution in parameters.solutions }}:
+              - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformPackSolution@2
+                displayName: "Pack Solution - ${{ solution }} - Managed"
+                inputs:
+                  SolutionSourceFolder: "$(Build.SourcesDirectory)/${{ solution }}"
+                  SolutionOutputFile: "$(Build.StagingDirectory)/${{ solution }}_managed.zip"
+                  SolutionType: Both
+          - publish: $(Build.StagingDirectory)/*.zip
+            artifact: solutions
+  - ${{ for env in parameters.environments }}:
+      - stage: Deploy_${{ env.environmentName:replace(' ', '_') }}
+        jobs:
+          - deployment: Deploy_${{ env.environmentName:replace(' ', '_') }}
+            displayName: "Deploy ${{ env.environmentName }}"
+            environment: "${{ env.serviceConnectionName }}"
+            strategy:
+              runOnce:
+                deploy:
+                  steps:
+                    - checkout: self
+                      fetchDepth: 0
+                    - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+                      displayName: "Power Platform Tool Installer"
+                    - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.whoami.PowerPlatformWhoAmi@2
+                      displayName: "Power Platform WhoAmI"
+                      inputs:
+                        authenticationType: PowerPlatformSPN
+                        PowerPlatformSPN: "${{ env.serviceConnectionName }}"
+                    - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.backup-environment.PowerPlatformBackupEnvironment@0
+                      displayName: "Power Platform Backup Environment - Pre-Import"
+                      inputs:
+                        authenticationType: "PowerPlatformSPN"
+                        PowerPlatformSPN: "${{ env.serviceConnectionName }}"
+                        BackupLabel: "Full backup - $(Build.BuildNumber)"
+                    - task: PowerPlatformImportSolution@2
+                      inputs:
+                        authenticationType: "PowerPlatformSPN"
+                        PowerPlatformSPN: "${{ env.serviceConnectionName }}"
+                        SolutionInputFile: "$(Build.SourcesDirectory)/DemoSolution_managed.zip"
+                        AsyncOperation: true
+                        MaxAsyncWaitTime: "60"
+                        ConvertToManaged: true
+                        HoldingSolution: ${{ env.useHoldingSolution }}
+                    - ${{ if env.useHoldingSolution }}:
+                        - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.apply-solution-upgrade.PowerPlatformApplySolutionUpgrade@0
+                          displayName: "Power Platform Apply Solution Upgrade"
+                          inputs:
+                            authenticationType: PowerPlatformSPN

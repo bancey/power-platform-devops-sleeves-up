@@ -1,0 +1,49 @@
+trigger: none
+
+pool:
+  vmImage: "ubuntu-latest"
+
+parameters:
+  - name: dev_solution_name
+    type: string
+  - name: target_solution_name
+    type: string
+
+stages:
+  - stage: export_dev_solutions
+    displayName: Export Dev Solutions
+    jobs:
+      - job: export_dev_solutions
+        displayName: Export Dev Solutions
+        steps:
+          - checkout: self
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+            displayName: "Power Platform Tool Installer"
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.whoami.PowerPlatformWhoAmi@2
+            displayName: "Power Platform WhoAmI"
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: "dev"
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformExportSolution@2
+            displayName: "Power Platform Export Solution - ${{ parameters.dev_solution_name }}"
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: "dev"
+              SolutionName: ${{ parameters.dev_solution_name}}
+              SolutionOutputFile: "$(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip"
+          - publish: $(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip
+            artifact: ${{ parameters.dev_solution_name }}_unmanaged
+  - stage: deploy_to_extract
+    displayName: Extract Solutions and Unpack
+    jobs:
+      - job: deploy_to_extract
+        displayName: Extract Solutions and Unpack
+        steps:
+          - task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformResetEnvironment@2
+            displayName: "Reset Extract Environment"
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: "extract"
+              CurrencyName: "GBP"
+              AppsTemplate: "D365_CustomerService"
+              WaitForEnvironmentAvailability: false
