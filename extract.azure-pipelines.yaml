@@ -8,6 +8,9 @@ parameters:
     type: string
   - name: target_solution_name
     type: string
+  - name: clean_extract_environment
+    type: boolean
+    default: false
 
 stages:
   - stage: export_dev_solutions
@@ -39,11 +42,19 @@ stages:
       - job: deploy_to_extract
         displayName: Extract Solutions and Unpack
         steps:
-          - task: PowerPlatformResetEnvironment@2
-            displayName: "Reset Extract Environment"
+          - ${{ if eq(parameters.clean_extract_environment, true) }}:
+              - task: PowerPlatformResetEnvironment@2
+                displayName: "Reset Extract Environment"
+                inputs:
+                  authenticationType: PowerPlatformSPN
+                  PowerPlatformSPN: "extract"
+                  CurrencyName: "GBP"
+                  AppsTemplate: "D365_CustomerService"
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download latest build artifacts"
             inputs:
-              authenticationType: PowerPlatformSPN
-              PowerPlatformSPN: "extract"
-              CurrencyName: "GBP"
-              AppsTemplate: "D365_CustomerService"
-              WaitForEnvironmentAvailability: false
+              buildType: "specific"
+              project: "GitHub Support"
+              definition: 54
+              buildVersionToDownload: "latestFromBranch"
+              branchName: "refs/heads/main"
