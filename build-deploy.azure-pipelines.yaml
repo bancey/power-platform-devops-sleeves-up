@@ -11,12 +11,9 @@ parameters:
   - name: environments
     type: object
     default:
-      - environmentName: Power Platform Extract
-        serviceConnectionName: extract
+      - environmentName: Power Platform CI
+        serviceConnectionName: ci
         useHoldingSolution: false
-      #- environmentName: Power Platform CI
-      #  serviceConnectionName: ci
-      #  useHoldingSolution: false
       #- environmentName: Power Platform Test
       #  serviceConnectionName: test
       #  useHoldingSolution: false
@@ -56,8 +53,6 @@ stages:
               runOnce:
                 deploy:
                   steps:
-                    - checkout: self
-                      fetchDepth: 0
                     - task: PowerPlatformToolInstaller@2
                       displayName: "Power Platform Tool Installer"
                     - task: PowerPlatformWhoAmi@2
@@ -71,17 +66,18 @@ stages:
                         authenticationType: "PowerPlatformSPN"
                         PowerPlatformSPN: "${{ env.serviceConnectionName }}"
                         BackupLabel: "Full backup - $(Build.BuildNumber)"
-                    - task: PowerPlatformImportSolution@2
-                      inputs:
-                        authenticationType: "PowerPlatformSPN"
-                        PowerPlatformSPN: "${{ env.serviceConnectionName }}"
-                        SolutionInputFile: "$(Build.SourcesDirectory)/DemoSolution_managed.zip"
-                        AsyncOperation: true
-                        MaxAsyncWaitTime: "60"
-                        ConvertToManaged: true
-                        HoldingSolution: ${{ env.useHoldingSolution }}
-                    - ${{ if env.useHoldingSolution }}:
-                        - task: PowerPlatformApplySolutionUpgrade@2
-                          displayName: "Power Platform Apply Solution Upgrade"
+                    - ${{ each solution in parameters.solutions }}:
+                        - task: PowerPlatformImportSolution@2
                           inputs:
-                            authenticationType: PowerPlatformSPN
+                            authenticationType: "PowerPlatformSPN"
+                            PowerPlatformSPN: "${{ env.serviceConnectionName }}"
+                            SolutionInputFile: "$(Pipeline.Workspace)/solutions/${{ solution }}_managed.zip"
+                            AsyncOperation: true
+                            MaxAsyncWaitTime: "60"
+                            ConvertToManaged: true
+                            HoldingSolution: ${{ env.useHoldingSolution }}
+                        - ${{ if env.useHoldingSolution }}:
+                            - task: PowerPlatformApplySolutionUpgrade@2
+                              displayName: "Power Platform Apply Solution Upgrade"
+                              inputs:
+                                authenticationType: PowerPlatformSPN
