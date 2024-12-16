@@ -17,7 +17,7 @@ parameters:
       #  serviceConnectionName: test
       #  useHoldingSolution: false
   - name: solutions
-    type: list
+    type: object
     default:
       - example_core
 
@@ -41,9 +41,9 @@ stages:
           - publish: $(Build.StagingDirectory)/*.zip
             artifact: solutions
   - ${{ for env in parameters.environments }}:
-      - stage: Deploy_${{ env.environmentName:replace(' ', '_') }}
+      - stage: Deploy_${{ replace(env.environmentName, ' ', '_') }}
         jobs:
-          - deployment: Deploy_${{ env.environmentName:replace(' ', '_') }}
+          - deployment: Deploy_${{ replace(env.environmentName, ' ', '_') }}
             displayName: "Deploy ${{ env.environmentName }}"
             environment: "${{ env.serviceConnectionName }}"
             strategy:
