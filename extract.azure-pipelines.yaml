@@ -53,6 +53,9 @@ stages:
         steps:
           - download: current
             artifact: ${{ parameters.dev_solution_name }}_unmanaged
+          - script: |
+              cd $(Pipeline.Workspace)
+              ls -la
           - task: PowerPlatformToolInstaller@2
             displayName: "Power Platform Tool Installer"
           - ${{ if eq(parameters.clean_extract_environment, true) }}:
