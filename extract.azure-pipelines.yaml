@@ -46,11 +46,13 @@ stages:
           - publish: $(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip
             artifact: ${{ parameters.dev_solution_name }}_unmanaged
   - stage: deploy_to_extract
-    displayName: Extract Solutions and Unpack
+    displayName: Import to Extract environment
     jobs:
       - job: deploy_to_extract
-        displayName: Extract Solutions and Unpack
+        displayName: Import to Extract environment
         steps:
+          - download: current
+            artifact: ${{ parameters.dev_solution_name }}_unmanaged
           - task: PowerPlatformToolInstaller@2
             displayName: "Power Platform Tool Installer"
           - ${{ if eq(parameters.clean_extract_environment, true) }}:
@@ -61,22 +63,33 @@ stages:
                   PowerPlatformSPN: "extract"
                   CurrencyName: "GBP"
                   AppsTemplate: "D365_CustomerService"
-          - task: DownloadPipelineArtifact@2
-            displayName: "Download latest build artifacts"
-            inputs:
-              buildType: "specific"
-              project: "GitHub Support"
-              definition: 54
-              buildVersionToDownload: "latestFromBranch"
-              branchName: "refs/heads/main"
-              artifactName: solutions
-          - ${{ each solution in parameters.base_solution_names }}:
-              - task: PowerPlatformImportSolution@2
+              - task: DownloadPipelineArtifact@2
+                displayName: "Download latest build artifacts"
                 inputs:
-                  authenticationType: "PowerPlatformSPN"
-                  PowerPlatformSPN: "extract"
-                  SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
-                  AsyncOperation: true
-                  MaxAsyncWaitTime: "60"
-                  ConvertToManaged: true
-                  HoldingSolution: false
+                  buildType: "specific"
+                  project: "GitHub Support"
+                  definition: 54
+                  buildVersionToDownload: "latestFromBranch"
+                  branchName: "refs/heads/main"
+                  artifactName: solutions
+              - ${{ each solution in parameters.base_solution_names }}:
+                  - task: PowerPlatformImportSolution@2
+                    displayName: "Import Base Solution - ${{ solution }}"
+                    inputs:
+                      authenticationType: "PowerPlatformSPN"
+                      PowerPlatformSPN: "extract"
+                      SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_unmanaged.zip"
+                      AsyncOperation: true
+                      MaxAsyncWaitTime: "60"
+                      ConvertToManaged: false
+                      HoldingSolution: false
+          - task: PowerPlatformImportSolution@2
+            displayName: "Import Dev Solution - ${{ parameters.dev_solution_name }}"
+            inputs:
+              authenticationType: "PowerPlatformSPN"
+              PowerPlatformSPN: "extract"
+              SolutionInputFile: "$(Pipeline.Workspace)/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              AsyncOperation: true
+              MaxAsyncWaitTime: "60"
+              ConvertToManaged: false
+              HoldingSolution: false
