@@ -44,7 +44,7 @@ stages:
               SolutionName: ${{ parameters.dev_solution_name}}
               SolutionOutputFile: "$(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip"
           - publish: $(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip
-            artifact: ${{ parameters.dev_solution_name }}_unmanaged
+            artifact: unmanaged_solution
   - stage: deploy_to_extract
     displayName: Import to Extract environment
     jobs:
@@ -53,9 +53,6 @@ stages:
         steps:
           - download: current
             artifact: ${{ parameters.dev_solution_name }}_unmanaged
-          - script: |
-              cd $(Pipeline.Workspace)
-              ls -la
           - task: PowerPlatformToolInstaller@2
             displayName: "Power Platform Tool Installer"
           - ${{ if eq(parameters.clean_extract_environment, true) }}:
@@ -91,7 +88,7 @@ stages:
             inputs:
               authenticationType: "PowerPlatformSPN"
               PowerPlatformSPN: "extract"
-              SolutionInputFile: "$(Pipeline.Workspace)/${{ parameters.dev_solution_name }}/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
               AsyncOperation: true
               MaxAsyncWaitTime: "60"
               ConvertToManaged: false
