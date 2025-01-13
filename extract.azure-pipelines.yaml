@@ -52,7 +52,8 @@ stages:
         displayName: Import to Extract environment
         steps:
           - download: current
-            artifact: ${{ parameters.dev_solution_name }}_unmanaged
+            displayName: "Download Dev Solution"
+            artifact: unmanaged_solution
           - task: PowerPlatformToolInstaller@2
             displayName: "Power Platform Tool Installer"
           - ${{ if eq(parameters.clean_extract_environment, true) }}:
