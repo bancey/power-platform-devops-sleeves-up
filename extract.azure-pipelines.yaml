@@ -88,7 +88,7 @@ stages:
             inputs:
               authenticationType: "PowerPlatformSPN"
               PowerPlatformSPN: "extract"
-              SolutionInputFile: "$(Pipeline.Workspace)/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              SolutionInputFile: "$(Pipeline.Workspace)/${{ parameters.dev_solution_name }}/${{ parameters.dev_solution_name }}_unmanaged.zip"
               AsyncOperation: true
               MaxAsyncWaitTime: "60"
               ConvertToManaged: false
