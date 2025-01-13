@@ -5,17 +5,17 @@ pool:
 
 parameters:
   - name: dev_solution_name
-    description: The name of the solution to extract from the dev environment, I.E the solution you have been working on.
+    displayName: The name of the solution to extract from the dev environment, I.E the solution you have been working on.
     type: string
   - name: target_solution_name
-    description: The name of the solution to add all components from the dev solution
+    displayName: The name of the solution to add all components from the dev solution
     type: string
   - name: clean_extract_environment
-    description: If true, the extract environment will be reset before importing the target solution
+    displayName: If true, the extract environment will be reset before importing the target solution
     type: boolean
     default: false
   - name: base_solution_names
-    description: The names of the solution files that should exist in the extract environment prior to importing the target solution
+    displayName: The names of the solution files that should exist in the extract environment prior to importing the target solution
     type: object
     default:
       - example_core
