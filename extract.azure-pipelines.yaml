@@ -70,7 +70,7 @@ stages:
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/main"
               artifactName: solutions
-          - ${{ each solution in parameters.solution_names }}:
+          - ${{ each solution in parameters.base_solution_names }}:
               - task: PowerPlatformImportSolution@2
                 inputs:
                   authenticationType: "PowerPlatformSPN"
