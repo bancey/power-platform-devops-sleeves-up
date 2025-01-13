@@ -6,7 +6,7 @@ Content presented during the sleeves up session can be found in this repo.
 
 - A Microsoft 365 Tenant
   - a developer/test tenant works well, has to be used within 90 days or it will get removed. https://learn.microsoft.com/en-us/office/developer-program/microsoft-365-developer-program-get-started#configurable-sandbox
-- At least 3 Power Platform environments (can be created in the Power Platform Admin Center as "Developer" environments by creating 3 users in your M365 tenant)
+- At least 2 Power Platform environments (can be created in the Power Platform Admin Center as "Developer" environments by creating 3 users in your M365 tenant)
   - A development environment
   - A test environment
   - A production environment
