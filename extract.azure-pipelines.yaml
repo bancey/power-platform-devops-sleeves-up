@@ -11,6 +11,11 @@ parameters:
   - name: clean_extract_environment
     type: boolean
     default: false
+  - name: solution_names
+    type: object
+    default:
+      - example_core
+      #- example_app
 
 stages:
   - stage: export_dev_solutions
@@ -59,6 +64,13 @@ stages:
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/main"
               artifactName: solutions
-          - script: |
-              cd $(Pipeline.Workspace)
-              ls -la
+          - ${{ each solution in parameters.solution_names }}:
+              - task: PowerPlatformImportSolution@2
+                inputs:
+                  authenticationType: "PowerPlatformSPN"
+                  PowerPlatformSPN: "extract"
+                  SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
+                  AsyncOperation: true
+                  MaxAsyncWaitTime: "60"
+                  ConvertToManaged: true
+                  HoldingSolution: false

@@ -9,7 +9,7 @@ Content presented during the sleeves up session can be found in this repo.
 - At least 2 Power Platform environments (can be created in the Power Platform Admin Center as "Developer" environments by creating 3 users in your M365 tenant)
   - A development environment
   - A test environment
-  - A production environment
+  - any other downstream environments (demo/nonprod/prod etc)
 - An Azure DevOps organisation (free for up to 5 users)
   - Install the Power Platform build tools extension
   - Setup a service connection to your Power Platform environments
