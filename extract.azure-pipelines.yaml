@@ -50,11 +50,12 @@ stages:
                   PowerPlatformSPN: "extract"
                   CurrencyName: "GBP"
                   AppsTemplate: "D365_CustomerService"
-          - task: DownloadPipelineArtifact@2
-            displayName: "Download latest build artifacts"
-            inputs:
-              buildType: "specific"
-              project: "GitHub Support"
-              definition: 54
-              buildVersionToDownload: "latestFromBranch"
-              branchName: "refs/heads/main"
+              - task: DownloadPipelineArtifact@2
+                displayName: "Download latest build artifacts"
+                inputs:
+                  buildType: "specific"
+                  project: "GitHub Support"
+                  definition: 54
+                  buildVersionToDownload: "latestFromBranch"
+                  branchName: "refs/heads/main"
+                  artifactName: solutions
