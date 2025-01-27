@@ -66,6 +66,9 @@ stages:
                         authenticationType: "PowerPlatformSPN"
                         PowerPlatformSPN: "${{ env.serviceConnectionName }}"
                         BackupLabel: "Full backup - $(Build.BuildNumber)"
+                    - script: |
+                        cd $(Pipeline.Workspace)/solutions
+                        ls -la
                     - ${{ each solution in parameters.solutions }}:
                         - task: PowerPlatformImportSolution@2
                           inputs:
