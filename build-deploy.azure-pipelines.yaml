@@ -73,9 +73,7 @@ stages:
                             PowerPlatformSPN: "${{ env.serviceConnectionName }}"
                             SolutionInputFile: "$(Pipeline.Workspace)/solutions/${{ solution }}_managed.zip"
                             AsyncOperation: true
-                            MaxAsyncWaitTime: "60"
-                            ConvertToManaged: true
-                            HoldingSolution: ${{ env.useHoldingSolution }}
+                            MaxAsyncWaitTime: 60
                         - ${{ if eq(env.useHoldingSolution, true) }}:
                             - task: PowerPlatformApplySolutionUpgrade@2
                               displayName: "Power Platform Apply Solution Upgrade"
