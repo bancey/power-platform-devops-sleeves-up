@@ -14,9 +14,9 @@ parameters:
       - environmentName: Power Platform CI
         serviceConnectionName: ci
         useHoldingSolution: false
-      #- environmentName: Power Platform Test
-      #  serviceConnectionName: test
-      #  useHoldingSolution: false
+      - environmentName: Power Platform Test
+        serviceConnectionName: test
+        useHoldingSolution: false
   - name: solutions
     type: object
     default:
@@ -66,9 +66,6 @@ stages:
                         authenticationType: "PowerPlatformSPN"
                         PowerPlatformSPN: "${{ env.serviceConnectionName }}"
                         BackupLabel: "Full backup - $(Build.BuildNumber)"
-                    - script: |
-                        cd $(Pipeline.Workspace)/solutions
-                        ls -la
                     - ${{ each solution in parameters.solutions }}:
                         - task: PowerPlatformImportSolution@2
                           inputs:
