@@ -22,6 +22,9 @@ parameters:
     default:
       - example_core
 
+variables:
+  async: true
+
 stages:
   - stage: Pack_Solutions
     displayName: Pack Solutions
@@ -72,8 +75,10 @@ stages:
                             authenticationType: "PowerPlatformSPN"
                             PowerPlatformSPN: "${{ env.serviceConnectionName }}"
                             SolutionInputFile: "$(Pipeline.Workspace)/solutions/${{ solution }}_managed.zip"
-                            AsyncOperation: true
-                            MaxAsyncWaitTime: 60
+                            AsyncOperation: $(async)
+                            useHoldingSolution: ${{ env.useHoldingSolution }}
+                            PublishCustomizationChanges: true
+                            OverwriteUnmanagedCustomizations: true
                         - ${{ if eq(env.useHoldingSolution, true) }}:
                             - task: PowerPlatformApplySolutionUpgrade@2
                               displayName: "Power Platform Apply Solution Upgrade"
