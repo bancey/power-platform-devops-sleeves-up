@@ -21,6 +21,9 @@ parameters:
       - example_core
       #- example_app
 
+variables:
+  async: false
+
 stages:
   - stage: export_dev_solutions
     displayName: Export Dev Solutions
@@ -43,6 +46,7 @@ stages:
               PowerPlatformSPN: "dev"
               SolutionName: ${{ parameters.dev_solution_name}}
               SolutionOutputFile: "$(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              AsyncOperation: $(async)
           - publish: $(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip
             artifact: unmanaged_solution
   - stage: deploy_to_extract
@@ -80,7 +84,7 @@ stages:
                       authenticationType: "PowerPlatformSPN"
                       PowerPlatformSPN: "extract"
                       SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_unmanaged.zip"
-                      AsyncOperation: true
+                      AsyncOperation: $(async)
                       MaxAsyncWaitTime: "60"
                       ConvertToManaged: false
                       HoldingSolution: false
@@ -90,7 +94,7 @@ stages:
               authenticationType: "PowerPlatformSPN"
               PowerPlatformSPN: "extract"
               SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
-              AsyncOperation: true
+              AsyncOperation: $(async)
               MaxAsyncWaitTime: "60"
               ConvertToManaged: false
               HoldingSolution: false

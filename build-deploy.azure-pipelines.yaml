@@ -23,7 +23,7 @@ parameters:
       - example_core
 
 variables:
-  async: true
+  async: false
 
 stages:
   - stage: Pack_Solutions
