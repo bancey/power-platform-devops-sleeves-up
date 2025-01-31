@@ -112,6 +112,7 @@ stages:
           - script: |
               echo "$(BuildTools.EnvironmentUrl)"
               $POWERPLATFORMTOOLS_PACCLIPATH/pac_linux/tools/pac auth create --url $(BuildTools.EnvironmentUrl) --applicationId $(ConnectionVariables.BuildTools.ApplicationId) --clientSecret $(ConnectionVariables.BuildTools.ClientSecret) --tenant $(ConnectionVariables.BuildTools.TenantId)
+              $POWERPLATFORMTOOLS_PACCLIPATH/pac_linux/tools/pac auth who
           - task: ExtractFiles@1
             displayName: Extract dev solution
             inputs:
