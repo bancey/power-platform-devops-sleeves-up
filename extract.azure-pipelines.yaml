@@ -34,99 +34,100 @@ stages:
           - checkout: self
           - task: PowerPlatformToolInstaller@2
             displayName: "Power Platform Tool Installer"
+          - task: PowerPlatformWhoAmi@2
+            displayName: "Power Platform WhoAmI"
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: "dev"
+          - task: PowerPlatformExportSolution@2
+            displayName: "Power Platform Export Solution - ${{ parameters.dev_solution_name }}"
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: "dev"
+              SolutionName: ${{ parameters.dev_solution_name}}
+              SolutionOutputFile: "$(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              AsyncOperation: $(async)
+          - publish: $(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip
+            artifact: unmanaged_solution
+  - stage: deploy_to_extract
+    displayName: Import to Extract environment
+    jobs:
+      - job: deploy_to_extract
+        displayName: Import to Extract environment
+        steps:
+          - download: current
+            displayName: "Download Dev Solution"
+            artifact: unmanaged_solution
+          - task: PowerPlatformToolInstaller@2
+            displayName: "Power Platform Tool Installer"
+          - ${{ if eq(parameters.clean_extract_environment, true) }}:
+              - task: PowerPlatformResetEnvironment@2
+                displayName: "Reset Extract Environment"
+                inputs:
+                  authenticationType: PowerPlatformSPN
+                  PowerPlatformSPN: "extract"
+                  CurrencyName: "GBP"
+                  AppsTemplate: "D365_CustomerService"
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download latest build artifacts"
+            inputs:
+              buildType: "specific"
+              project: "GitHub Support"
+              definition: 54
+              buildVersionToDownload: "latestFromBranch"
+              branchName: "refs/heads/main"
+              artifactName: solutions
+          #- ${{ each solution in parameters.base_solution_names }}:
+          #    - task: PowerPlatformImportSolution@2
+          #      displayName: "Import Base Solution - ${{ solution }}"
+          #      inputs:
+          #        authenticationType: "PowerPlatformSPN"
+          #        PowerPlatformSPN: "extract"
+          #        SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
+          #        AsyncOperation: $(async)
+          #        MaxAsyncWaitTime: "60"
+          #        ConvertToManaged: false
+          #        HoldingSolution: false
+          #- task: PowerPlatformImportSolution@2
+          #  displayName: "Import Dev Solution - ${{ parameters.dev_solution_name }}"
+          #  inputs:
+          #    authenticationType: "PowerPlatformSPN"
+          #    PowerPlatformSPN: "extract"
+          #    SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
+          #    AsyncOperation: $(async)
+          #    MaxAsyncWaitTime: "60"
+          #    ConvertToManaged: false
+          #    HoldingSolution: false
+          - task: PowerPlatformWhoAmi@2
+            displayName: "Power Platform WhoAmI"
+            inputs:
+              authenticationType: PowerPlatformSPN
+              PowerPlatformSPN: "extract"
+          - task: PowerPlatformSetConnectionVariables@2
+            name: ConnectionVariables
+            displayName: "Set Connection Variables"
+            inputs:
+              authenticationType: "PowerPlatformSPN"
+              PowerPlatformSPN: "extract"
           - script: |
-              cd $POWERPLATFORMTOOLS_PACCLIPATH
-              ls -R
-              $POWERPLATFORMTOOLS_PACCLIPATH/pac_linux/tools/pac --version
-
-#          - task: PowerPlatformWhoAmi@2
-#            displayName: "Power Platform WhoAmI"
-#            inputs:
-#              authenticationType: PowerPlatformSPN
-#              PowerPlatformSPN: "dev"
-#          - task: PowerPlatformExportSolution@2
-#            displayName: "Power Platform Export Solution - ${{ parameters.dev_solution_name }}"
-#            inputs:
-#              authenticationType: PowerPlatformSPN
-#              PowerPlatformSPN: "dev"
-#              SolutionName: ${{ parameters.dev_solution_name}}
-#              SolutionOutputFile: "$(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip"
-#              AsyncOperation: $(async)
-#          - publish: $(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip
-#            artifact: unmanaged_solution
-#  - stage: deploy_to_extract
-#    displayName: Import to Extract environment
-#    jobs:
-#      - job: deploy_to_extract
-#        displayName: Import to Extract environment
-#        steps:
-#          - download: current
-#            displayName: "Download Dev Solution"
-#            artifact: unmanaged_solution
-#          - task: PowerPlatformToolInstaller@2
-#            displayName: "Power Platform Tool Installer"
-#          - ${{ if eq(parameters.clean_extract_environment, true) }}:
-#              - task: PowerPlatformResetEnvironment@2
-#                displayName: "Reset Extract Environment"
-#                inputs:
-#                  authenticationType: PowerPlatformSPN
-#                  PowerPlatformSPN: "extract"
-#                  CurrencyName: "GBP"
-#                  AppsTemplate: "D365_CustomerService"
-#          - task: DownloadPipelineArtifact@2
-#            displayName: "Download latest build artifacts"
-#            inputs:
-#              buildType: "specific"
-#              project: "GitHub Support"
-#              definition: 54
-#              buildVersionToDownload: "latestFromBranch"
-#              branchName: "refs/heads/main"
-#              artifactName: solutions
-#          #- ${{ each solution in parameters.base_solution_names }}:
-#          #    - task: PowerPlatformImportSolution@2
-#          #      displayName: "Import Base Solution - ${{ solution }}"
-#          #      inputs:
-#          #        authenticationType: "PowerPlatformSPN"
-#          #        PowerPlatformSPN: "extract"
-#          #        SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
-#          #        AsyncOperation: $(async)
-#          #        MaxAsyncWaitTime: "60"
-#          #        ConvertToManaged: false
-#          #        HoldingSolution: false
-#          #- task: PowerPlatformImportSolution@2
-#          #  displayName: "Import Dev Solution - ${{ parameters.dev_solution_name }}"
-#          #  inputs:
-#          #    authenticationType: "PowerPlatformSPN"
-#          #    PowerPlatformSPN: "extract"
-#          #    SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
-#          #    AsyncOperation: $(async)
-#          #    MaxAsyncWaitTime: "60"
-#          #    ConvertToManaged: false
-#          #    HoldingSolution: false
-#          - task: PowerPlatformSetConnectionVariables@2
-#            inputs:
-#              authenticationType: "PowerPlatformSPN"
-#              PowerPlatformSPN: "extract"
-#          - script: |
-#              cd $POWERPLATFORMTOOLS_PACCLIPATH
-#              ls -la
-#          - task: ExtractFiles@1
-#            displayName: Extract dev solution
-#            inputs:
-#              archiveFilePatterns: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
-#              destinationFolder: "$(Build.ArtifactStagingDirectory)/extracted_solution"
-#              cleanDestinationFolder: true
-#              overwriteExistingFiles: false
-#          - script: |
-#              readarray components < <(yq e -o=j -I=0 '.ImportExportXml.SolutionManifest.RootComponents |= ([] + .) | .ImportExportXml.SolutionManifest.RootComponents.[0].RootComponent[]' solution.xml)
+              echo "$(BuildTools.EnvironmentUrl)"
+              $POWERPLATFORMTOOLS_PACCLIPATH/pac_linux/tools/pac auth create --url $(BuildTools.EnvironmentUrl) --applicationId $(ConnectionVariables.BuildTools.ApplicationId) --clientSecret $(ConnectionVariables.BuildTools.ClientSecret) --tenant $(ConnectionVariables.BuildTools.TenantId)
+          - task: ExtractFiles@1
+            displayName: Extract dev solution
+            inputs:
+              archiveFilePatterns: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              destinationFolder: "$(Build.ArtifactStagingDirectory)/extracted_solution"
+              cleanDestinationFolder: true
+              overwriteExistingFiles: false
+          #- script: |
+          #    readarray components < <(yq e -o=j -I=0 '.ImportExportXml.SolutionManifest.RootComponents |= ([] + .) | .ImportExportXml.SolutionManifest.RootComponents.[0].RootComponent[]' solution.xml)
 #
-#              for component in "${components[@]}"; do
-#                  echo $component
-#                  type=$(echo $component | yq e '.+@type')
-#                  schemaName=$(echo $component | yq e '.+@schemaName')
-#                  echo "Adding $schemaName of type $type to solution"
-#                  pac
-#              done
-#            workingDirectory: "$(Build.ArtifactStagingDirectory)/extracted_solution"
-#            displayName: Add all components to target solution
-#
+#    for component in "${components[@]}"; do
+#        echo $component
+#        type=$(echo $component | yq e '.+@type')
+#        schemaName=$(echo $component | yq e '.+@schemaName')
+#        echo "Adding $schemaName of type $type to solution"
+#        #pac
+#    done
+#  workingDirectory: "$(Build.ArtifactStagingDirectory)/extracted_solution"
+#  displayName: Add all components to target solution
