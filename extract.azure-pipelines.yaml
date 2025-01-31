@@ -37,6 +37,7 @@ stages:
           - script: |
               cd $POWERPLATFORMTOOLS_PACCLIPATH
               ls -R
+              $POWERPLATFORMTOOLS_PACCLIPATH/pac_linux/tools/pac --version
 
 #          - task: PowerPlatformWhoAmi@2
 #            displayName: "Power Platform WhoAmI"
