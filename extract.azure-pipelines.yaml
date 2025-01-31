@@ -77,16 +77,13 @@ stages:
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/main"
               artifactName: solutions
-          - script: |
-              cd $(Pipeline.Workspace)
-              ls -la
           - ${{ each solution in parameters.base_solution_names }}:
               - task: PowerPlatformImportSolution@2
                 displayName: "Import Base Solution - ${{ solution }}"
                 inputs:
                   authenticationType: "PowerPlatformSPN"
                   PowerPlatformSPN: "extract"
-                  SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_unmanaged.zip"
+                  SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
                   AsyncOperation: $(async)
                   MaxAsyncWaitTime: "60"
                   ConvertToManaged: false
