@@ -49,6 +49,7 @@ stages:
               AsyncOperation: $(async)
           - publish: $(Build.StagingDirectory)/${{ parameters.dev_solution_name }}_unmanaged.zip
             artifact: unmanaged_solution
+            displayName: "Publish Dev Solution"
   - stage: deploy_to_extract
     displayName: Import to Extract environment
     jobs:
@@ -77,27 +78,27 @@ stages:
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/main"
               artifactName: solutions
-          #- ${{ each solution in parameters.base_solution_names }}:
-          #    - task: PowerPlatformImportSolution@2
-          #      displayName: "Import Base Solution - ${{ solution }}"
-          #      inputs:
-          #        authenticationType: "PowerPlatformSPN"
-          #        PowerPlatformSPN: "extract"
-          #        SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
-          #        AsyncOperation: $(async)
-          #        MaxAsyncWaitTime: "60"
-          #        ConvertToManaged: false
-          #        HoldingSolution: false
-          #- task: PowerPlatformImportSolution@2
-          #  displayName: "Import Dev Solution - ${{ parameters.dev_solution_name }}"
-          #  inputs:
-          #    authenticationType: "PowerPlatformSPN"
-          #    PowerPlatformSPN: "extract"
-          #    SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
-          #    AsyncOperation: $(async)
-          #    MaxAsyncWaitTime: "60"
-          #    ConvertToManaged: false
-          #    HoldingSolution: false
+          - ${{ each solution in parameters.base_solution_names }}:
+              - task: PowerPlatformImportSolution@2
+                displayName: "Import Base Solution - ${{ solution }}"
+                inputs:
+                  authenticationType: "PowerPlatformSPN"
+                  PowerPlatformSPN: "extract"
+                  SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}.zip"
+                  AsyncOperation: $(async)
+                  MaxAsyncWaitTime: "60"
+                  ConvertToManaged: false
+                  HoldingSolution: false
+          - task: PowerPlatformImportSolution@2
+            displayName: "Import Dev Solution - ${{ parameters.dev_solution_name }}"
+            inputs:
+              authenticationType: "PowerPlatformSPN"
+              PowerPlatformSPN: "extract"
+              SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              AsyncOperation: $(async)
+              MaxAsyncWaitTime: "60"
+              ConvertToManaged: false
+              HoldingSolution: false
           - task: PowerPlatformWhoAmi@2
             displayName: "Power Platform WhoAmI"
             inputs:
@@ -109,11 +110,8 @@ stages:
             inputs:
               authenticationType: "PowerPlatformSPN"
               PowerPlatformSPN: "extract"
-          - script: |
-              echo "$(BuildTools.EnvironmentUrl)"
-
           - task: ExtractFiles@1
-            displayName: Extract dev solution
+            displayName: Unzip dev solution
             inputs:
               archiveFilePatterns: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
               destinationFolder: "$(Build.ArtifactStagingDirectory)/extracted_solution"
