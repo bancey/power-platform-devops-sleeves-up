@@ -77,27 +77,33 @@ stages:
               buildVersionToDownload: "latestFromBranch"
               branchName: "refs/heads/main"
               artifactName: solutions
-          - ${{ each solution in parameters.base_solution_names }}:
-              - task: PowerPlatformImportSolution@2
-                displayName: "Import Base Solution - ${{ solution }}"
-                inputs:
-                  authenticationType: "PowerPlatformSPN"
-                  PowerPlatformSPN: "extract"
-                  SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
-                  AsyncOperation: $(async)
-                  MaxAsyncWaitTime: "60"
-                  ConvertToManaged: false
-                  HoldingSolution: false
-          - task: PowerPlatformImportSolution@2
-            displayName: "Import Dev Solution - ${{ parameters.dev_solution_name }}"
+          #- ${{ each solution in parameters.base_solution_names }}:
+          #    - task: PowerPlatformImportSolution@2
+          #      displayName: "Import Base Solution - ${{ solution }}"
+          #      inputs:
+          #        authenticationType: "PowerPlatformSPN"
+          #        PowerPlatformSPN: "extract"
+          #        SolutionInputFile: "$(Pipeline.Workspace)/${{ solution }}_managed.zip"
+          #        AsyncOperation: $(async)
+          #        MaxAsyncWaitTime: "60"
+          #        ConvertToManaged: false
+          #        HoldingSolution: false
+          #- task: PowerPlatformImportSolution@2
+          #  displayName: "Import Dev Solution - ${{ parameters.dev_solution_name }}"
+          #  inputs:
+          #    authenticationType: "PowerPlatformSPN"
+          #    PowerPlatformSPN: "extract"
+          #    SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
+          #    AsyncOperation: $(async)
+          #    MaxAsyncWaitTime: "60"
+          #    ConvertToManaged: false
+          #    HoldingSolution: false
+          - task: PowerPlatformSetConnectionVariables@2
             inputs:
               authenticationType: "PowerPlatformSPN"
               PowerPlatformSPN: "extract"
-              SolutionInputFile: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
-              AsyncOperation: $(async)
-              MaxAsyncWaitTime: "60"
-              ConvertToManaged: false
-              HoldingSolution: false
+          - script: |
+              echo $POWERPLATFORMTOOLS_PACCLIPATH
           - task: ExtractFiles@1
             displayName: Extract dev solution
             inputs:
