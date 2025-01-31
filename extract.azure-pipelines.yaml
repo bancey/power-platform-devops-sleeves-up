@@ -36,7 +36,7 @@ stages:
             displayName: "Power Platform Tool Installer"
           - script: |
               cd $POWERPLATFORMTOOLS_PACCLIPATH
-              ls -la
+              ls -R
 
 #          - task: PowerPlatformWhoAmi@2
 #            displayName: "Power Platform WhoAmI"
