@@ -98,3 +98,22 @@ stages:
               MaxAsyncWaitTime: "60"
               ConvertToManaged: false
               HoldingSolution: false
+          - task: ExtractFiles@1
+            displayName: Extract dev solution
+            inputs:
+              archiveFilePatterns: "$(Pipeline.Workspace)/unmanaged_solution/${{ parameters.dev_solution_name }}_unmanaged.zip"
+              destinationFolder: "$(Build.ArtifactStagingDirectory)/extracted_solution"
+              cleanDestinationFolder: true
+              overwriteExistingFiles: false
+          - script: |
+              readarray components < <(yq e -o=j -I=0 '.ImportExportXml.SolutionManifest.RootComponents |= ([] + .) | .ImportExportXml.SolutionManifest.RootComponents.[0].RootComponent[]' solution.xml)
+
+              for component in "${components[@]}"; do
+                  echo $component
+                  type=$(echo $component | yq e '.+@type')
+                  schemaName=$(echo $component | yq e '.+@schemaName')
+                  echo "Adding $schemaName of type $type to solution"
+                  pac
+              done
+            workingDirectory: "$(Build.ArtifactStagingDirectory)/extracted_solution"
+            displayName: Add all components to target solution
